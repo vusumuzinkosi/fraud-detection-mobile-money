@@ -1,0 +1,15 @@
+# Claude's study guides stay local (not part of the public repo)
+[[]C[]]*
+
+# Raw and processed data stay local (licence terms, file size)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Python and Jupyter
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+*.pyc
+.DS_Store
