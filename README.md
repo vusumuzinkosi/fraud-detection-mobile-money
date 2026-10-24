@@ -112,3 +112,27 @@ The chosen model is refitted on train plus validation and scored once on the 4 t
 **The misses are informative:**
 - **Day 16 is a staffing miss:** 320 frauds against 300 reviews. The queue was 100% fraud and 20 cases still got through. A better model cannot fix that; more reviewers or an automatic hold can.
 - **Every other miss is a transfer of exactly 10 million that does not empty the account.** Large thefts are split into 10 million chunks (the per-transaction limit), and the early chunks leave money behind, so they lack the signature. Only 5 cases, but 50 million in value. A one-line rule, *review every transfer at the transaction limit*, closes the gap.
+
+## 7. The daily review queue
+
+**If the team reviews 300 flags a day, the model catches 98% of fraud cases, worth about R364 million a day (89% of the money stolen), and 13% of flags are false alarms (about 39 a day).**
+
+How the answer changes with team size (4 test days):
+
+| Reviews per day | Fraud cases caught | Fraud value caught | Flags that are fraud | False alarms per day |
+|---|---|---|---|---|
+| 50 | 19% | 55% | 100% | 0 |
+| 100 | 38% | 73% | 100% | 0 |
+| 200 | 75% | 87% | 100% | 0 |
+| 250 | 93% | 89% | 99% | 2 |
+| **300** | **98%** | **89%** | **87%** | **39** |
+| 400 | 100% | 98% | 67% | 134 |
+| 500 | 100% | 100% | 53% | 233 |
+
+![Capacity trade-off](figures/capacity_tradeoff.png)
+
+- **The queue is front-loaded.** The model puts the biggest thefts first, so even 50 reviews a day protect over half of the money. The false alarms sit at the bottom: the first 250 reviews are 99% fraud.
+- **Past about 300 reviews, extra staff mostly read false alarms.** Going from 300 to 500 reviews a day adds only the last 2% of cases but multiplies the false alarms six times.
+- **Fraud comes in pairs.** Many cases are a `TRANSFER` to a mule account followed by a `CASH_OUT` of the same amount. Holding the transfer in real time stops the cash-out too.
+
+An example day's queue, with priority bands for the analysts, is in [`reports/review_queue_day16.csv`](reports/review_queue_day16.csv); the full trade-off is in [`reports/capacity_tradeoff.csv`](reports/capacity_tradeoff.csv).
