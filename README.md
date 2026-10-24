@@ -90,3 +90,25 @@ Three approaches, trained on the first 8 days and compared on the 2 validation d
 - **ROC AUC flatters everyone.** Even the weak isolation forest scores 0.94, because ranking hundreds of thousands of easy legitimate transactions below fraud is easy. PR AUC looks only at the flagged end of the list, where the team works, and separates the models clearly.
 - **Unusual is not fraudulent.** The isolation forest finds some fraud without any labels, which is useful for a provider that has none, but it also flags honest unusual transactions such as large legitimate payments.
 - **Simpler won.** The weighted logistic regression edges out gradient boosting. The fraud signature here is a few strong signals (whole balance taken, large amount, receiver with no money), which a linear model captures well. It is also the easiest to explain to a fraud manager and an auditor, so it goes forward.
+
+## 6. Evaluation
+
+The chosen model is refitted on train plus validation and scored once on the 4 test days: **PR AUC 0.993**.
+
+![Precision-recall curves](figures/precision_recall_curves.png)
+
+**Threshold = capacity.** Each day, the 300 highest-scoring transfers and cash-outs go to the team:
+
+| Test day | Fraud | Caught in top 300 | Recall | Precision | False alarms |
+|---|---|---|---|---|---|
+| 13 | 246 | 246 | 100% | 82% | 54 |
+| 14 | 250 | 247 | 99% | 82% | 53 |
+| 15 | 252 | 250 | 99% | 83% | 50 |
+| 16 | 320 | 300 | 94% | 100% | 0 |
+| **All 4 days** | **1,068** | **1,043** | **98%** | **87%** | **157** |
+
+![Confusion matrix](figures/confusion_matrix_capacity.png)
+
+**The misses are informative:**
+- **Day 16 is a staffing miss:** 320 frauds against 300 reviews. The queue was 100% fraud and 20 cases still got through. A better model cannot fix that; more reviewers or an automatic hold can.
+- **Every other miss is a transfer of exactly 10 million that does not empty the account.** Large thefts are split into 10 million chunks (the per-transaction limit), and the early chunks leave money behind, so they lack the signature. Only 5 cases, but 50 million in value. A one-line rule, *review every transfer at the transaction limit*, closes the gap.
