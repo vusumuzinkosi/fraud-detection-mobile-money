@@ -57,3 +57,20 @@ Real transaction-level fraud data is almost never public, in South Africa or any
 ![Fraud rate by hour](figures/fraud_rate_by_hour.png)
 
 5. **The "after" balances leak.** In 49% of frauds, money arrives at an account whose balance is zero both before and after receiving it, against 0.07% of legitimate transactions. That is impossible in a real ledger; it is a recording quirk of the simulator. The "after" balances are dropped, and the model uses only what is known when a transaction is made: type, amount, hour, and the balances before it.
+
+## 4. Baselines
+
+The 14 normal days are split **in time order**, never at random, because the model will always be used on future transactions:
+
+| Part | Days | Transactions | Fraud |
+|---|---|---|---|
+| Train | first 8 | 1,568,556 | 2,157 |
+| Validation (choose the model) | next 2 | 337,997 | 540 |
+| Test (report to the business, used once) | last 4 | 697,399 | 1,068 |
+
+| Baseline on the test days | Accuracy | Recall | Fraud let through |
+|---|---|---|---|
+| Predict "not fraud" for everything | **99.85%** | **0%** | 1,636 million |
+| The provider's existing rule (`isFlaggedFraud`) | 99.85% | 0.1% (1 flag in 4 days) | almost all of it |
+
+This is the **accuracy trap**: the "do nothing" model is 99.85% accurate and catches nothing.
