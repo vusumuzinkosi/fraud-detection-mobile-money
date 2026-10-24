@@ -1,5 +1,19 @@
 # Fraud Detection: A Daily Review Queue for Mobile Money
 
+**A fraud model that hands a fraud team its daily review queue, sized to how many cases the team can actually check.**
+
+Built on 2.6 million simulated mobile money transactions (PaySim), framed for a South African mobile money provider.
+
+| | |
+|---|---|
+| **Question** | Which transactions should 6 analysts review each day to catch most fraud without drowning in false alarms? |
+| **Trap avoided** | "Nothing is fraud" is 99.85% accurate and catches 0%. The provider's existing rule caught 1 fraud in 4 days. |
+| **Model** | Weighted logistic regression on information known at transaction time; time-based train, validation and test split |
+| **Result** | Reviewing the top **300 a day** catches **98% of fraud cases** (89% of the money) with **87% of flags genuine** |
+| **Also found** | A leaking "after balance" column, simulator quiet days, and a 10 million transaction-limit gap closed by a one-line rule |
+
+![Capacity trade-off](figures/capacity_tradeoff.png)
+
 ## 1. Business problem
 
 **Client and context.** The imagined client is a South African mobile money provider (a bank-backed wallet that lets customers send money to each other and cash out at agents and ATMs). Its fraud team reviews suspicious transactions by hand: an analyst looks at the transaction, may call the customer, and can hold or reverse it.
@@ -136,3 +150,55 @@ How the answer changes with team size (4 test days):
 - **Fraud comes in pairs.** Many cases are a `TRANSFER` to a mule account followed by a `CASH_OUT` of the same amount. Holding the transfer in real time stops the cash-out too.
 
 An example day's queue, with priority bands for the analysts, is in [`reports/review_queue_day16.csv`](reports/review_queue_day16.csv); the full trade-off is in [`reports/capacity_tradeoff.csv`](reports/capacity_tradeoff.csv).
+
+## 8. Recommendation
+
+1. **Replace the existing rule with the model-ranked queue.** Score every transfer and cash-out and send the top 300 a day to the team, highest score first. On the test days that catches 98% of fraud cases instead of 0.1%.
+2. **Keep the team at about 300 reviews a day.** Below 250, recall drops quickly; above 300, extra reviews are mostly false alarms.
+3. **Add one rule:** review every transfer at the 10 million transaction limit. It catches the split large thefts the model misses.
+4. **Hold transfers in real time, not after the fact.** Fraud moves as a transfer then a cash-out; stopping the transfer stops both.
+5. **On short-staffed days, work the queue from the top.** The first 100 reviews are 100% fraud and cover 73% of the value.
+
+**Link to the churn project.** Both projects face the same precision versus recall trade-off. In churn, a missed churner cost about 20 times a wasted call, and the threshold came from that cost ratio. Here a missed fraud costs thousands of times more than a false alarm, so recall would win outright, except that the team can only review 300 cases. The binding constraint is capacity, so the threshold comes from capacity.
+
+## Limitations
+
+- **Simulated data is far cleaner than reality.** The "takes the whole balance" signature is almost perfect in PaySim. Real fraudsters vary their behaviour and adapt once a rule is known, so real-world precision and recall would be much lower. The value of this project is the method (time split, leakage check, capacity threshold), not the near-perfect scores.
+- **Amounts are simulator units**, read as rand for illustration only.
+- **No customer history.** Real systems use features like device, location, time since the last login and the customer's normal spending, none of which PaySim has.
+- **Only four test days.** A deployed model would be monitored daily, and retrained as fraud patterns shift.
+- **Labels in real life are delayed and incomplete.** Here every fraud is labelled; in practice, fraud is only known once someone reports it.
+
+## Next steps
+
+- In a South African role, use the provider's own transaction logs with device, SIM-swap and location signals (SIM-swap fraud is a major issue for South African banks), processed under POPIA.
+- Add network features: how many different senders a receiving account has had money from in the last day (mule accounts collect from many victims).
+- Test the model on a held-out month and track precision weekly, so the team sees early if fraudsters change tactics.
+
+## How to run
+
+```bash
+git clone https://github.com/vusumuzinkosi/fraud-detection-mobile-money.git
+cd fraud-detection-mobile-money
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+jupyter notebook
+```
+
+Run the notebooks in order. The first one downloads PaySim (about 270 MB) into `data/raw/` if it is not there yet. Expect a few minutes and about 2 GB of memory.
+
+## Project structure
+
+```
+notebooks/
+  01_explore.ipynb        load, data dictionary, imbalance, quiet days, leakage check
+  02_model.ipynb          baselines, weighted logistic regression, isolation forest, gradient boosting, capacity evaluation
+  03_review_queue.ipynb   capacity trade-off and an example daily queue
+figures/                  charts used in this README
+reports/
+  capacity_tradeoff.csv   recall, precision and value caught for 50 to 1,000 reviews a day
+  review_queue_day16.csv  an example day's queue with priority bands
+data/                     raw and processed data (not committed)
+```
+
+*Author: Vusumuzi Nkosi ([GitHub](https://github.com/vusumuzinkosi))*
