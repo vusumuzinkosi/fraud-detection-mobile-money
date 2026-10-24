@@ -1,5 +1,7 @@
 # Fraud Detection: A Daily Review Queue for Mobile Money
 
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikitlearn&logoColor=white) ![imbalanced-learn](https://img.shields.io/badge/imbalanced--learn-4C72B0?style=flat-square) ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat-square&logo=jupyter&logoColor=white) ![Status](https://img.shields.io/badge/Status-Complete-2EA44F?style=flat-square)
+
 **A fraud model that hands a fraud team its daily review queue, sized to how many cases the team can actually check.**
 
 Built on 2.6 million simulated mobile money transactions (PaySim), framed for a South African mobile money provider.
@@ -201,4 +203,7 @@ reports/
 data/                     raw and processed data (not committed)
 ```
 
-*Author: Vusumuzi Nkosi ([GitHub](https://github.com/vusumuzinkosi))*
+---
+
+**Vusumuzi Nkosi** · Data Scientist · South Africa<br>
+[Portfolio](https://vusumuzinkosi.github.io) · [LinkedIn](https://linkedin.com/in/vusumuzinkosi) · [GitHub](https://github.com/vusumuzinkosi) · [Email](mailto:vusizwe@rocketmail.com)
