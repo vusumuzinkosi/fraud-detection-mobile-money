@@ -44,3 +44,16 @@ Real transaction-level fraud data is almost never public, in South Africa or any
 | `isFlaggedFraud` | The provider's existing rule, aimed at very large transfers. It fired 16 times in the whole month. |
 
 **Before and after.** A fraud check happens *before* a transaction is approved, so the "after" balances would not be available to a real model. Step 3 checks whether they leak the answer.
+
+## 3. What the data shows
+
+![Daily volume](figures/daily_volume.png)
+
+1. **Fraud is extremely rare.** 8,213 frauds in 6.4 million transactions, 0.13%. Predicting "no fraud" for everything would be 99.87% accurate.
+2. **Fraud happens only in transfers and cash-outs.** Payments, cash-ins and debits contain no fraud at all, so the model only scores transfers and cash-outs (2.77 million, 44% of volume).
+3. **The simulation has quiet days.** Fraud stays at about 250 to 300 a day, but legitimate volume collapses on days 2 to 4 and from day 17. On those days fraud looks like half of all traffic, which no real provider would see. **I keep only the 14 normal-volume days** (2.6 million transactions, about 270 frauds a day, 0.15%).
+4. **Fraud has a signature.** In 98% of fraud cases the amount is the account's **entire balance**, which legitimate transactions in this data almost never do. Fraud amounts are larger (median 412,500 against 171,400) and capped at 10 million per transaction, and fraud makes up a much bigger share of transactions at night, when honest customers are asleep.
+
+![Fraud rate by hour](figures/fraud_rate_by_hour.png)
+
+5. **The "after" balances leak.** In 49% of frauds, money arrives at an account whose balance is zero both before and after receiving it, against 0.07% of legitimate transactions. That is impossible in a real ledger; it is a recording quirk of the simulator. The "after" balances are dropped, and the model uses only what is known when a transaction is made: type, amount, hour, and the balances before it.
