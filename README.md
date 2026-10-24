@@ -74,3 +74,19 @@ The 14 normal days are split **in time order**, never at random, because the mod
 | The provider's existing rule (`isFlaggedFraud`) | 99.85% | 0.1% (1 flag in 4 days) | almost all of it |
 
 This is the **accuracy trap**: the "do nothing" model is 99.85% accurate and catches nothing.
+
+## 5. Models
+
+Three approaches, trained on the first 8 days and compared on the 2 validation days:
+
+| Model | Idea | PR AUC | ROC AUC |
+|---|---|---|---|
+| **Logistic regression, `class_weight="balanced"`** | Each fraud counts about 700 times more during training | **0.987** | **1.000** |
+| Isolation forest | Unsupervised: never sees the labels, flags what is unusual | 0.362 | 0.942 |
+| Gradient boosting (`HistGradientBoostingClassifier`) | Learns interactions between features | 0.984 | 0.998 |
+
+![Logistic regression coefficients](figures/logreg_coefficients.png)
+
+- **ROC AUC flatters everyone.** Even the weak isolation forest scores 0.94, because ranking hundreds of thousands of easy legitimate transactions below fraud is easy. PR AUC looks only at the flagged end of the list, where the team works, and separates the models clearly.
+- **Unusual is not fraudulent.** The isolation forest finds some fraud without any labels, which is useful for a provider that has none, but it also flags honest unusual transactions such as large legitimate payments.
+- **Simpler won.** The weighted logistic regression edges out gradient boosting. The fraud signature here is a few strong signals (whole balance taken, large amount, receiver with no money), which a linear model captures well. It is also the easiest to explain to a fraud manager and an auditor, so it goes forward.
